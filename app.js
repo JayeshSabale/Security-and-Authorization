@@ -15,17 +15,22 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect("mongodb://127.0.0.1:27017/userDB", { useNewUrlParser: true });
+ const DATABASE_URL = process.env.CONNECTION_URL;
+
+
+mongoose.connect(DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const userSchema = new mongoose.Schema({
   email: String,
   password: String, 
 });
 
-const User = new mongoose.model("User", userSchema);
+const Client = new mongoose.model("Client", userSchema);
 
 app.get("/", function (req, res) {
-
   res.render("home");
 });
 
@@ -56,8 +61,7 @@ app.get("/logout", function (req, res) {
 });
 
 app.post("/register", function (req, res) {
-
-  const newUser = new User({
+  const newUser = new Client({
     email: req.body.username,
     password: md5(req.body.password),
   });
@@ -65,7 +69,6 @@ app.post("/register", function (req, res) {
     .save()
     .then(function () {
       res.render("login");
-     
     })
     .catch(function (error) {
       console.log(error);
@@ -78,7 +81,7 @@ app.post("/login", function (req, res) {
   const username = req.body.username;
   const password = md5(req.body.password);
 
-  User.findOne({ email: username })
+  Client.findOne({ email: username })
     .then(function (foundUser) {
       if (foundUser.password === password) {
         res.render("secrets");
